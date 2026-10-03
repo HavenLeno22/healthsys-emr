@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSys EMR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+
+        /* Custom class for sidebar active link */
+        .sidebar-link-active {
+            background-color: #4a5568; /* bg-gray-700 */
+            color: #ffffff; /* text-white */
+        }
+        
+        /* Custom class for file tree active item */
+        .file-item-active {
+            background-color: #dbeafe; /* bg-blue-100 */
+        }
+        .dark .file-item-active {
+            background-color: #2b6cb0; /* bg-blue-800 */
+        }
+
+        /* Modal backdrop */
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        
+        /* Custom toggle switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #48bb78;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #48bb78;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-200">
+    
+    <!-- Login Page -->
+    <div id="login-page" class="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
+        <div class="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 mx-4">
+            <div>
+                <h2 class="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+                    HealthSys EMR
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                    Sign in to your account
+                </p>
+            </div>
+            <form id="login-form" class="mt-8 space-y-6">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="username" class="sr-only">Username</label>
+                        <input id="username" name="username" type="text" autocomplete="username" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Username (try 'nurse' or 'doctor')">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Password</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Password (try '1234')">
+                    </div>
+                </div>
+                <p id="login-error" class="text-sm text-red-500 text-center hidden">Invalid username or password.</p>
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden by default) -->
+    <div id="main-app" class="flex h-screen overflow-hidden hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 text-gray-300 flex-shrink-0 flex flex-col dark:bg-gray-900 border-r border-gray-700 dark:border-gray-700">
+            <div class="h-16 flex items-center justify-center px-4 border-b border-gray-700 flex-shrink-0">
+                <h1 class="text-xl font-bold text-white">HealthSys EMR</h1>
+            </div>
+            <nav class="flex-1 overflow-y-auto p-4 space-y-2">
+                <a href="#" id="nav-charts" class="nav-link flex items-center px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    <span>Patient Charts</span>
+                </a>
+                <a href="#" id="nav-directory" class="nav-link flex items-center px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <span>Patients</span>
+                </a>
+                <a href="#" id="nav-schedule" class="nav-link flex items-center px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span>Schedule</span>
+                </a>
+                <a href="#" id="nav-settings" class="nav-link flex items-center px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <!-- User Profile -->
+            <div class="p-4 border-t border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img id="user-profile-img" class="h-10 w-10 rounded-full object-cover" src="https-://placehold.co/100x100/4A5568/E2E8F0?text=JD" alt="User Avatar">
+                        <div class="ml-3">
+                            <p id="user-profile-name" class="text-sm font-medium text-white">Dr. Joana Doe</p>
+                            <p id="user-profile-role" class="text-xs text-gray-400">Cardiologist</p>
+                        </div>
+                    </div>
+                    <button id="btn-sign-out" title="Sign Out" class="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-auto">
+            <!-- Header -->
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 dark:bg-gray-800 dark:border-gray-700">
+                <!-- Patient Selector -->
+                <div class="flex items-center">
+                    <label for="patient-select" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Patient:</label>
+                    <select id="patient-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <!-- Header Actions -->
+                <div class="flex items-center space-x-4">
+                    <button id="btn-new-doc" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium flex items-center text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        New Document
+                    </button>
+                    <button id="btn-new-folder" class="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 font-medium flex items-center text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h5l2 2h5a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+                        New Folder
+                    </button>
+                    <div class="relative">
+                        <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span id="notification-dot" class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full hidden"></span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content Grid (Patient Charts) -->
+            <div id="patient-charts-content" class="flex-1 flex overflow-hidden p-4 md:p-6 gap-6">
+                <!-- Left: File Explorer & Vitals -->
+                <div class="w-1/3 flex flex-col gap-6">
+                    <!-- Patient Vitals -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Vitals (Current)</h3>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">BP:</span>
+                                <span id="vital-bp" class="font-medium text-gray-900 dark:text-gray-100 ml-1">120/80</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">HR:</span>
+                                <span id="vital-hr" class="font-medium text-gray-900 dark:text-gray-100 ml-1">72 bpm</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Temp:</span>
+                                <span id="vital-temp" class="font-medium text-gray-900 dark:text-gray-100 ml-1">98.6°F</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">O2:</span>
+                                <span id="vital-o2" class="font-medium text-gray-900 dark:text-gray-100 ml-1">99%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Explorer -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 p-4 flex-1 flex flex-col overflow-hidden">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Patient Chart</h3>
+                            <div class="text-sm text-gray-500 dark:text-gray-400" id="file-count">0 items</div>
+                        </div>
+                        <div class="border-t dark:border-gray-700 -mx-4"></div>
+                        <div id="file-explorer" class="flex-1 overflow-y-auto py-2 pr-1">
+                            <!-- File tree will be rendered here -->
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Select a patient to view their chart.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Editor & Tabs -->
+                <div class="w-2/3 flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 overflow-hidden">
+                    <!-- Tabs -->
+                    <div class="flex border-b dark:border-gray-700">
+                        <button class="tab-btn active-tab py-3 px-5 font-medium text-sm text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400" data-tab="editor">
+                            Document Editor
+                        </button>
+                        <button class="tab-btn py-3 px-5 font-medium text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-tab="history">
+                            Chart History
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Editor -->
+                    <div id="tab-content-editor" class="tab-content flex-1 flex flex-col overflow-hidden">
+                        <div class="p-4 flex justify-between items-center border-b dark:border-gray-700">
+                            <h4 id="editor-filename" class="font-semibold text-gray-700 dark:text-gray-300">No file selected.</h4>
+                            <div class="flex space-x-2">
+                                <button id="btn-save" class_disabled="true" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium text-sm flex items-center disabled:bg-gray-400 dark:disabled:bg-gray-600">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                                    Save
+                                </button>
+                                <button id="btn-delete" class_disabled="true" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 font-medium text-sm flex items-center disabled:bg-gray-400 dark:disabled:bg-gray-600">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                        <textarea id="editor" class_disabled="true" class="flex-1 p-4 w-full h-full resize-none outline-none dark:bg-gray-800 dark:text-gray-200" placeholder="Select a file to start editing..."></textarea>
+                    </div>
+
+                    <!-- Tab Content: Chart History -->
+                    <div id="tab-content-history" class="tab-content hidden flex-1 flex flex-col overflow-hidden">
+                        <div class="p-4 border-b dark:border-gray-700">
+                             <h4 class="font-semibold text-gray-700 dark:text-gray-300">Recent Activity</h4>
+                        </div>
+                        <div id="audit-log" class="flex-1 overflow-y-auto p-4 space-y-3">
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">No activity recorded for this session.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Patient Directory -->
+            <div id="patient-directory-content" class="flex-1 p-4 md:p-6 gap-6 hidden flex flex-col">
+                <div class="p-4 md:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 flex-shrink-0">
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Patient Directory</h3>
+                        <button id="btn-register-patient" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 font-medium flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                            Register New Patient
+                        </button>
+                    </div>
+                </div>
+                <!-- Patient Table -->
+                <div class="flex-1 overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700">
+                    <table class="w-full table-auto">
+                        <thead class="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
+                            <tr>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="id">Patient ID</th>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="name">Name</th>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="dob">Date of Birth</th>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Contact</th>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Primary Physician</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patient-table-body" class="divide-y dark:divide-gray-700">
+                            <!-- Rows will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page: Schedule -->
+            <div id="schedule-content" class="flex-1 p-4 md:p-6 gap-6 hidden flex flex-col">
+                <!-- Schedule Header -->
+                <div class="p-4 md:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 flex-shrink-0">
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Weekly Schedule</h3>
+                        <div class="flex items-center space-x-2">
+                            <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400" title="Previous Week">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+                            <span class="font-medium text-gray-700 dark:text-gray-300 text-center">October 20 - 26, 2025</span>
+                            <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400" title="Next Week">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                        </div>
+                        <button id="btn-new-appointment-header" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            New Appointment
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Main Calendar View -->
+                <div class="flex-1 flex overflow-hidden bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700">
+                    <!-- Time Column -->
+                    <div class="w-16 flex-shrink-0 border-r dark:border-gray-700 overflow-y-auto">
+                        <!-- Blank header cell -->
+                        <div class="h-16 flex-shrink-0 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10"></div> 
+                        <!-- Time slots -->
+                        <div class="flex flex-col">
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">8:00 AM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">9:00 AM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">10:00 AM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">11:00 AM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">12:00 PM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">1:00 PM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">2:00 PM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">3:00 PM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">4:00 PM</div>
+                            <div class="h-20 p-1 text-xs text-right text-gray-500 dark:text-gray-400 border-b dark:border-gray-700 pt-2">5:00 PM</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calendar Grid -->
+                    <div class="flex-1 grid grid-cols-7 overflow-auto">
+                        <!-- Day Headers -->
+                        <div class="text-center p-2 border-b border-r dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10">
+                            <div class="font-semibold">Mon</div><div class="text-sm text-gray-600 dark:text-gray-400">20</div>
+                        </div>
+                        <div class="text-center p-2 border-b border-r dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10">
+                            <div class="font-semibold">Tue</div><div class="text-sm text-gray-600 dark:text-gray-400">21</div>
+                        </div>
+                        <div class="text-center p-2 border-b border-r dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10">
+                            <div class="font-semibold">Wed</div><div class="text-sm text-gray-600 dark:text-gray-400">22</div>
+                        </div>
+                        <div class="text-center p-2 border-b border-r dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10">
+                            <div class="font-semibold">Thu</div><div class="text-sm text-gray-600 dark:text-gray-400">23</div>
+                        </div>
+                        <div class="text-center p-2 border-b border-r dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10">
+                            <div class="font-semibold">Fri</div><div class="text-sm text-gray-600 dark:text-gray-400">24</div>
+                        </div>
+                        <div class="text-center p-2 border-b border-r dark:border-gray-700 bg-gray-100 dark:bg-gray-900/50 sticky top-0 z-10">
+                            <div class="font-semibold text-gray-500 dark:text-gray-500">Sat</div><div class="text-sm text-gray-400 dark:text-gray-600">25</div>
+                        </div>
+                        <div class="text-center p-2 border-b dark:border-gray-700 bg-gray-100 dark:bg-gray-900/50 sticky top-0 z-10">
+                            <div class="font-semibold text-gray-500 dark:text-gray-500">Sun</div><div class="text-sm text-gray-400 dark:text-gray-600">26</div>
+                        </div>
+                        
+                        <!-- Grid Cells -->
+                        <!-- Monday -->
+                        <div class="border-r border-b dark:border-gray-700 relative">
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 8am -->
+                            <div class="h-20 border-b dark:border-gray-700 p-1 relative"> <!-- 9am -->
+                                <div class="bg-blue-100 dark:bg-blue-900/50 border border-blue-300 dark:border-blue-700 rounded-lg p-1.5 h-full overflow-hidden cursor-pointer hover:shadow-lg hover:border-blue-500 absolute top-1 left-1 right-1">
+                                    <p class="text-xs font-semibold text-blue-800 dark:text-blue-200">J. Doe - Annual</p>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400">9:00 - 9:45 AM</p>
+                                </div>
+                            </div>
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 10am -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 11am -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 12pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 1pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 2pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 3pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 4pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 5pm -->
+                        </div>
+                        <!-- Tuesday -->
+                        <div class="border-r border-b dark:border-gray-700">
+                            <div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div>
+                        </div>
+                        <!-- Wednesday -->
+                        <div class="border-r border-b dark:border-gray-700 relative">
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 8am -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 9am -->
+                            <div class="h-20 border-b dark:border-gray-700 p-1 relative"> <!-- 10am -->
+                                <div class="bg-green-100 dark:bg-green-900/50 border border-green-300 dark:border-green-700 rounded-lg p-1.5 h-full overflow-hidden cursor-pointer hover:shadow-lg hover:border-green-500 absolute top-1 left-1 right-1">
+                                    <p class="text-xs font-semibold text-green-800 dark:text-green-200">R. Brown - Follow-up</p>
+                                    <p class="text-xs text-green-600 dark:text-green-400">10:00 - 10:30 AM</p>
+                                </div>
+                            </div>
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 11am -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 12pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 1pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 2pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 3pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 4pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 5pm -->
+                        </div>
+                        <!-- Thursday -->
+                        <div class="border-r border-b dark:border-gray-700 relative">
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 8am -->
+                            <div class="h-20 border-b dark:border-gray-700 p-1 relative"> <!-- 9am -->
+                                <div class="bg-blue-100 dark:bg-blue-900/50 border border-blue-300 dark:border-blue-700 rounded-lg p-1.5 h-full overflow-hidden cursor-pointer hover:shadow-lg hover:border-blue-500 absolute top-1 left-1 right-1">
+                                    <p class="text-xs font-semibold text-blue-800 dark:text-blue-200">J. Smith - Consult</p>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400">9:00 - 9:30 AM</p>
+                                </div>
+                            </div>
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 10am -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 11am -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 12pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 1pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 2pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 3pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 4pm -->
+                            <div class="h-20 border-b dark:border-gray-700"></div> <!-- 5pm -->
+                        </div>
+                        <!-- Friday -->
+                        <div class="border-r border-b dark:border-gray-700">
+                            <div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div>
+                        </div>
+                        <!-- Saturday -->
+                        <div class="border-r border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                            <div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div>
+                        </div>
+                        <!-- Sunday -->
+                        <div class="border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                            <div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div><div class="h-20 border-b dark:border-gray-700"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Settings -->
+            <div id="settings-content" class="flex-1 p-4 md:p-6 gap-6 hidden flex flex-col">
+                <div class="p-4 md:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 flex-shrink-0">
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Settings</h3>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- User Profile Settings -->
+                    <div class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 p-6">
+                        <h4 class="text-lg font-semibold mb-4">User Profile</h4>
+                        <div class="flex flex-col items-center">
+                            <img id="settings-profile-img" class="h-24 w-24 rounded-full object-cover mb-4" src="https://placehold.co/100x100/4A5568/E2E8F0?text=JD" alt="User Avatar">
+                            <button class="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-4">Change Photo</button>
+                            <form class="w-full space-y-4">
+                                <div>
+                                    <label for="profile-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                    <input type="text" id="profile-name" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="Dr. Joana Doe">
+                                </div>
+                                <div>
+                                    <label for="profile-role" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
+                                    <input type="text" id="profile-role" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm sm:text-sm" value="Cardiologist" readonly>
+                                </div>
+                                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium text-sm">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- App Settings -->
+                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 p-6">
+                        <h4 class="text-lg font-semibold mb-4">Application</h4>
+                        <div class="space-y-6">
+                            <!-- Dark Mode Toggle -->
+                            <div>
+                                <h5 class="text-md font-medium mb-2">Appearance</h5>
+                                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
+                                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                        <input type="checkbox" name="dark-mode-toggle" id="dark-mode-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                        <label for="dark-mode-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Notifications -->
+                            <div>
+                                <h5 class="text-md font-medium mb-2">Notifications</h5>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <span class="font-medium text-gray-700 dark:text-gray-300">New Lab Results</span>
+                                        <input type="checkbox" class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" checked>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <span class="font-medium text-gray-700 dark:text-gray-300">Appointment Reminders</span>
+                                        <input type="checkbox" class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" checked>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <span class="font-medium text-gray-700 dark:text-gray-300">System Alerts</span>
+                                        <input type="checkbox" class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Right-Click Context Menu (Hidden) -->
+    <div id="context-menu" class="hidden absolute z-50 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border dark:border-gray-700 py-1">
+        <a href="#" id="context-rename" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            Rename
+        </a>
+        <a href="#" id="context-delete" class="flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50">
+            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            Delete
+        </a>
+    </div>
+
+    <!-- Modal: Confirm Delete -->
+    <div id="modal-confirm-delete" class="modal hidden fixed inset-0 bg-gray-900/60 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+            <div class="flex items-start">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div class="ml-4 text-left">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Delete Item</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Are you sure you want to delete "<strong id="delete-item-name"></strong>"? This action cannot be undone.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button id="btn-confirm-delete" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Delete
+                </button>
+                <button id="btn-cancel-delete" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Rename Item -->
+    <div id="modal-rename" class="modal hidden fixed inset-0 bg-gray-900/60 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+            <form id="form-rename">
+                <div class="p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Rename Item</h3>
+                    <div class="mt-4">
+                        <label for="rename-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New name</label>
+                        <input type="text" id="rename-input" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-6 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Rename
+                    </button>
+                    <button id="btn-cancel-rename" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: New Patient -->
+    <div id="modal-new-patient" class="modal hidden fixed inset-0 bg-gray-900/60 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+            <form id="form-new-patient">
+                <div class="p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Register New Patient</h3>
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="patient-first-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
+                            <input type="text" id="patient-first-name" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                        </div>
+                        <div>
+                            <label for="patient-last-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</label>
+                            <input type="text" id="patient-last-name" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="patient-dob" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
+                            <input type="date" id="patient-dob" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                        </div>
+                         <div class="sm:col-span-2">
+                            <label for="patient-contact" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Contact Phone</label>
+                            <input type="tel" id="patient-contact" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-6 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Register
+                    </button>
+                    <button id="btn-cancel-new-patient" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: New Document Template -->
+    <div id="modal-new-template" class="modal hidden fixed inset-0 bg-gray-900/60 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Create New Document</h3>
+                <div class="mt-4">
+                    <label for="new-doc-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Document Name</label>
+                    <input type="text" id="new-doc-name" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., Follow-up Note">
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Template</label>
+                    <div id="template-options" class="mt-2 space-y-2">
+                        <label class="flex items-center p-3 w-full bg-gray-50 dark:bg-gray-700/50 rounded-md border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="radio" name="doc-template" value="blank" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
+                            <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-200">Blank Document</span>
+                        </label>
+                        <label class="flex items-center p-3 w-full bg-gray-50 dark:bg-gray-700/50 rounded-md border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="radio" name="doc-template" value="soap" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-200">SOAP Note</span>
+                        </label>
+                        <label class="flex items-center p-3 w-full bg-gray-50 dark:bg-gray-700/50 rounded-md border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="radio" name="doc-template" value="referral" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-200">Referral Letter</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-800/50 px-6 py-3 sm:flex sm:flex-row-reverse">
+                <button id="btn-create-doc" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Create
+                </button>
+                <button id="btn-cancel-new-doc" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: New Appointment -->
+    <div id="modal-new-appointment" class="modal hidden fixed inset-0 bg-gray-900/60 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+            <form id="form-new-appointment">
+                <div class="p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">New Appointment</h3>
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label for="appt-patient" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Patient</label>
+                            <select id="appt-patient" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                                <!-- Patient list will be populated by JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="appt-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                            <input type="date" id="appt-date" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                        </div>
+                        <div>
+                            <label for="appt-time" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Time</label>
+                            <input type="time" id="appt-time" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="appt-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Appointment Type</label>
+                            <input type="text" id="appt-type" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., Annual Checkup, Follow-up">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-6 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Schedule
+                    </button>
+                    <button id="btn-cancel-new-appointment" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- MOCK DATA ---
+        
+        let USER_ROLE = null; // "Nurse" or "Doctor" - Set by login
+        
+        // Mock User Profiles
+        const USER_PROFILES = {
+            "Nurse": {
+                name: "Alex Chen",
+                role: "Registered Nurse",
+                img: "https://placehold.co/100x100/63B3ED/FFFFFF?text=AC"
+            },
+            "Doctor": {
+                name: "Dr. Joana Doe",
+                role: "Cardiologist",
+                img: "https://placehold.co/100x100/4A5568/E2E8F0?text=JD"
+            }
+        };
+
+        // Mock Document Templates
+        const DOC_TEMPLATES = {
+            "blank": "",
+            "soap": `SUBJECTIVE:
+Patient reports...
+
+OBJECTIVE:
+Vitals:
+Physical Exam:
+
+ASSESSMENT:
+1. ...
+2. ...
+
+PLAN:
+- ...
+- ...
+- Follow-up in ...
+`,
+            "referral": `Dear [Colleague Name],
+
+RE: [Patient Name]
+DOB: [Patient DOB]
+
+Thank you for seeing this patient for consultation regarding...
+
+History:
+...
+
+Assessment:
+...
+
+Reason for Referral:
+...
+
+Sincerely,
+[Your Name]
+`
+        };
+
+        // Mock Patient Data
+        let patients = [
+            { 
+                id: 'p1', 
+                name: 'John Doe', 
+                dob: '1985-05-15', 
+                contact: '(555) 123-4567',
+                physician: 'Dr. Joana Doe',
+                vitals: { bp: '122/81', hr: '74 bpm', temp: '98.7°F', o2: '98%' },
+                avatar: 'https://placehold.co/100x100/3182CE/FFFFFF?text=JD'
+            },
+            { 
+                id: 'p2', 
+                name: 'Jane Smith', 
+                dob: '1992-11-30', 
+                contact: '(555) 987-6543',
+                physician: 'Dr. Joana Doe',
+                vitals: { bp: '118/76', hr: '68 bpm', temp: '98.5°F', o2: '99%' },
+                avatar: 'https://placehold.co/100x100/9F7AEA/FFFFFF?text=JS'
+            },
+            { 
+                id: 'p3', 
+                name: 'Robert Brown', 
+                dob: '1957-03-22', 
+                contact: '(555) 246-8135',
+                physician: 'Dr. Evelyn Reed',
+                vitals: { bp: '135/88', hr: '78 bpm', temp: '98.6°F', o2: '97%' },
+                avatar: 'https://placehold.co/100x100/38A169/FFFFFF?text=RB'
+            }
+        ];
+
+        // Mock File System Data
+        let fileSystem = {
+            'p1': [
+                { id: 'f1-1', type: 'folder', name: 'Visit Notes', children: [
+                    { id: 'f1-1-1', type: 'file', name: '2025-10-23_checkup.txt', content: 'Patient reports feeling well. No complaints. Vitals stable. Continue current medication.' },
+                    { id: 'f1-1-2', type: 'file', name: '2025-07-10_followup.txt', content: 'Follow-up on hypertension. BP is well-controlled.' },
+                ]},
+                { id: 'f1-2', type: 'folder', name: 'Lab Results', children: [
+                    { id: 'f1-2-1', type: 'file', name: '2025-10-20_blood_panel.pdf', content: 'Simulated PDF content for blood panel. All values within normal range.' },
+                ]},
+                { id: 'f1-3', type: 'folder', name: 'Imaging', children: []},
+                { id: 'f1-4', type: 'file', name: 'allergies.txt', content: 'Penicillin (causes rash)'},
+            ],
+            'p2': [
+                { id: 'f2-1', type: 'folder', name: 'Consultations', children: [
+                    { id: 'f2-1-1', type: 'file', name: '2025-09-15_cardiology.txt', content: 'Cardiology consult with Dr. Doe. EKG normal. Advised lifestyle changes.'}
+                ]},
+                { id: 'f2-2', type: 'folder', name: 'Lab Results', children: [
+                    { id: 'f2-2-1', type: 'file', name: '2025-09-01_lipid_panel.pdf', content: 'Simulated PDF content for lipid panel. LDL slightly elevated.'}
+                ]},
+                { id: 'f2-3', type: 'file', name: 'medications.txt', content: 'None'},
+            ],
+            'p3': [
+                { id: 'f3-1', type: 'folder', name: 'Visit Notes', children: [
+                    { id: 'f3-1-1', type: 'file', name: '2025-08-05_new_patient.txt', content: 'New patient visit. History of Type 2 Diabetes.'}
+                ]},
+                { id: 'f3-2', type: 'file', name: 'problem_list.txt', content: '1. Type 2 Diabetes\n2. Hypertension'},
+            ]
+        };
+
+        // --- STATE VARIABLES ---
+        let activePatientId = null;
+        let activeNode = { id: null, type: null, element: null };
+        let contextMenuNode = { id: null, type: null, element: null };
+        let clipboard = { type: null, data: null }; // For cut/paste (future)
+        let sortState = { column: 'id', order: 'asc' };
+        let auditLogEntries = [];
+
+        // --- DOM ELEMENTS ---
+
+        // Login Page
+        const loginPage = document.getElementById('login-page');
+        const mainApp = document.getElementById('main-app');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const btnSignOut = document.getElementById('btn-sign-out');
+
+        // Main App
+        const patientSelect = document.getElementById('patient-select');
+        const fileExplorer = document.getElementById('file-explorer');
+        const fileCount = document.getElementById('file-count');
+        const editor = document.getElementById('editor');
+        const editorFilename = document.getElementById('editor-filename');
+        const btnSave = document.getElementById('btn-save');
+        const btnDelete = document.getElementById('btn-delete');
+        const btnNewDoc = document.getElementById('btn-new-doc');
+        const btnNewFolder = document.getElementById('btn-new-folder');
+        
+        // Page containers
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pageCharts = document.getElementById('patient-charts-content');
+        const pageDirectory = document.getElementById('patient-directory-content');
+        const pageSchedule = document.getElementById('schedule-content');
+        const pageSettings = document.getElementById('settings-content');
+
+        // Vitals
+        const vitalBP = document.getElementById('vital-bp');
+        const vitalHR = document.getElementById('vital-hr');
+        const vitalTemp = document.getElementById('vital-temp');
+        const vitalO2 = document.getElementById('vital-o2');
+
+        // Tabs
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const auditLogContainer = document.getElementById('audit-log');
+        const notificationDot = document.getElementById('notification-dot');
+
+        // User Profile (Sidebar)
+        const userProfileImg = document.getElementById('user-profile-img');
+        const userProfileName = document.getElementById('user-profile-name');
+        const userProfileRole = document.getElementById('user-profile-role');
+
+        // Patient Directory
+        const patientTableBody = document.getElementById('patient-table-body');
+        const patientTableHeaders = document.querySelectorAll('#patient-directory-content th');
+        const btnRegisterPatient = document.getElementById('btn-register-patient');
+
+        // Settings
+        const settingsProfileImg = document.getElementById('settings-profile-img');
+        const settingsProfileName = document.getElementById('profile-name');
+        const settingsProfileRole = document.getElementById('profile-role');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+        // Context Menu
+        const contextMenu = document.getElementById('context-menu');
+        const contextRename = document.getElementById('context-rename');
+        const contextDelete = document.getElementById('context-delete');
+
+        // Modals
+        const modalConfirmDelete = document.getElementById('modal-confirm-delete');
+        const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+        const btnCancelDelete = document.getElementById('btn-cancel-delete');
+        const deleteItemName = document.getElementById('delete-item-name');
+
+        const modalRename = document.getElementById('modal-rename');
+        const formRename = document.getElementById('form-rename');
+        const renameInput = document.getElementById('rename-input');
+        const btnCancelRename = document.getElementById('btn-cancel-rename');
+
+        const modalNewPatient = document.getElementById('modal-new-patient');
+        const formNewPatient = document.getElementById('form-new-patient');
+        const btnCancelNewPatient = document.getElementById('btn-cancel-new-patient');
+
+        const modalNewTemplate = document.getElementById('modal-new-template');
+        const newDocNameInput = document.getElementById('new-doc-name');
+        const btnCreateDoc = document.getElementById('btn-create-doc');
+        const btnCancelNewDoc = document.getElementById('btn-cancel-new-doc');
+
+        const modalNewAppointment = document.getElementById('modal-new-appointment');
+        const btnNewAppointment = document.getElementById('btn-new-appointment-header'); // Corrected ID
+        const btnCancelNewAppointment = document.getElementById('btn-cancel-new-appointment');
+        const formNewAppointment = document.getElementById('form-new-appointment');
+        const apptPatientSelect = document.getElementById('appt-patient');
+
+        // --- HELPER FUNCTIONS ---
+
+        /**
+         * Generates a simple unique ID.
+         */
+        const generateId = () => `f-${Math.random().toString(36).substr(2, 9)}`;
+
+        /**
+         * Finds a node (file/folder) by its ID in the patient's file system.
+         */
+        function findNodeById(nodes, id) {
+            for (const node of nodes) {
+                if (node.id === id) return node;
+                if (node.children) {
+                    const found = findNodeById(node.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Finds the parent of a node by its ID.
+         */
+        function findParentNode(nodes, id) {
+            for (const node of nodes) {
+                if (node.children) {
+                    if (node.children.some(child => child.id === id)) return node;
+                    const found = findParentNode(node.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+        
+        /**
+         * Gets the root array for the current patient.
+         */
+        const getCurrentPatientFiles = () => fileSystem[activePatientId] || [];
+
+        /**
+         * Opens a modal.
+         */
+        const openModal = (modal) => {
+            modal.classList.remove('hidden');
+        };
+
+        /**
+         * Closes a modal.
+         */
+        const closeModal = (modal) => {
+            modal.classList.add('hidden');
+        };
+
+        /**
+         * Adds an entry to the audit log.
+         */
+        const logAudit = (action, details) => {
+            const timestamp = new Date().toLocaleTimeString();
+            auditLogEntries.unshift({ action, details, timestamp });
+            renderAuditLog();
+        };
+
+        // --- RENDER FUNCTIONS ---
+
+        /**
+         * Renders the file explorer for the active patient.
+         */
+        function renderFileExplorer() {
+            const patientFiles = getCurrentPatientFiles();
+            if (!patientFiles) {
+                fileExplorer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No chart data found for this patient.</p>';
+                fileCount.textContent = '0 items';
+                return;
+            }
+
+            let count = 0;
+            const createNodeHTML = (node, level) => {
+                count++;
+                const indent = level * 20; // 20px indent per level
+                const icon = node.type === 'folder' 
+                    ? `<svg class="w-5 h-5 mr-2 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>`
+                    : `<svg class="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0011.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
+                
+                let childrenHTML = '';
+                if (node.type === 'folder' && node.children.length > 0) {
+                    childrenHTML = `<div class="pl-4">${node.children.map(child => createNodeHTML(child, level + 1)).join('')}</div>`;
+                }
+
+                return `
+                    <div class="file-item-container">
+                        <div 
+                            class="file-item flex items-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            data-id="${node.id}" 
+                            data-type="${node.type}"
+                            style="padding-left: ${indent + 8}px;"
+                        >
+                            ${icon}
+                            <span class="text-sm text-gray-800 dark:text-gray-200 truncate" title="${node.name}">${node.name}</span>
+                        </div>
+                        ${childrenHTML}
+                    </div>
+                `;
+            };
+
+            fileExplorer.innerHTML = patientFiles.map(node => createNodeHTML(node, 0)).join('');
+            fileCount.textContent = `${count} item${count !== 1 ? 's' : ''}`;
+        }
+
+        /**
+         * Renders the patient list in the header dropdown.
+         */
+        function renderPatientList() {
+            patientSelect.innerHTML = '<option value="" disabled selected>Select a patient...</option>';
+            patients.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = `${p.name} (ID: ${p.id})`;
+                patientSelect.appendChild(option);
+            });
+        }
+
+        /**
+         * Renders the patient directory table.
+         */
+        function renderPatientTable() {
+            patientTableBody.innerHTML = ''; // Clear existing
+            
+            // Sort data
+            const sortedPatients = [...patients].sort((a, b) => {
+                let valA = a[sortState.column];
+                let valB = b[sortState.column];
+                
+                if (sortState.column === 'dob') {
+                    valA = new Date(valA);
+                    valB = new Date(valB);
+                }
+                
+                if (valA < valB) return sortState.order === 'asc' ? -1 : 1;
+                if (valA > valB) return sortState.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            // Render rows
+            sortedPatients.forEach(p => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700/50';
+                row.innerHTML = `
+                    <td class="p-4 text-sm font-medium text-gray-900 dark:text-gray-200">${p.id}</td>
+                    <td class="p-4 text-sm text-gray-700 dark:text-gray-300">
+                        <div class="flex items-center">
+                            <img class="h-8 w-8 rounded-full object-cover mr-3" src="${p.avatar}" alt="Avatar">
+                            ${p.name}
+                        </div>
+                    </td>
+                    <td class="p-4 text-sm text-gray-700 dark:text-gray-300">${p.dob}</td>
+                    <td class="p-4 text-sm text-gray-700 dark:text-gray-300">${p.contact}</td>
+                    <td class="p-4 text-sm text-gray-700 dark:text-gray-300">${p.physician}</td>
+                `;
+                patientTableBody.appendChild(row);
+            });
+
+            // Update sort indicators
+            patientTableHeaders.forEach(th => {
+                th.classList.remove('bg-gray-100', 'dark:bg-gray-700');
+                th.querySelector('.sort-indicator')?.remove();
+                if (th.dataset.sort === sortState.column) {
+                    th.classList.add('bg-gray-100', 'dark:bg-gray-700');
+                    const indicator = document.createElement('span');
+                    indicator.className = 'sort-indicator ml-1';
+                    indicator.textContent = sortState.order === 'asc' ? '▲' : '▼';
+                    th.appendChild(indicator);
+                }
+            });
+        }
+
+        /**
+         * Renders the patient vitals display.
+         */
+        function renderVitals(patient) {
+            if (patient) {
+                vitalBP.textContent = patient.vitals.bp;
+                vitalHR.textContent = patient.vitals.hr;
+                vitalTemp.textContent = patient.vitals.temp;
+                vitalO2.textContent = patient.vitals.o2;
+            } else {
+                vitalBP.textContent = 'N/A';
+                vitalHR.textContent = 'N/A';
+                vitalTemp.textContent = 'N/A';
+                vitalO2.textContent = 'N/A';
+            }
+        }
+
+        /**
+         * Renders the audit log tab.
+         */
+        function renderAuditLog() {
+            if (auditLogEntries.length === 0) {
+                auditLogContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No activity recorded for this session.</p>';
+                return;
+            }
+            auditLogContainer.innerHTML = auditLogEntries.map(entry => `
+                <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+                    <p class="text-sm font-medium text-gray-800 dark:text-gray-200">${entry.action}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">${entry.details}</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 text-right">${entry.timestamp}</p>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Renders the user's profile in the sidebar and settings.
+         */
+        function renderUserProfile() {
+            const profile = USER_PROFILES[USER_ROLE] || USER_PROFILES["Doctor"];
+            
+            // Sidebar
+            userProfileImg.src = profile.img;
+            userProfileName.textContent = profile.name;
+            userProfileRole.textContent = profile.role;
+            
+            // Settings
+            settingsProfileImg.src = profile.img;
+            settingsProfileName.value = profile.name;
+            settingsProfileRole.value = profile.role;
+            
+            // Update Referral Template
+            DOC_TEMPLATES["referral"] = `Dear [Colleague Name],
+
+RE: [Patient Name]
+DOB: [Patient DOB]
+
+Thank you for seeing this patient for consultation regarding...
+
+History:
+...
+
+Assessment:
+...
+
+Reason for Referral:
+...
+
+Sincerely,
+${profile.name}
+`;
+
+            // Apply Role Permissions
+            applyPermissions();
+        }
+
+        // --- CORE LOGIC FUNCTIONS ---
+
+        /**
+         * Handles selecting a patient from the dropdown.
+         */
+        function selectPatient(e) {
+            activePatientId = e.target.value;
+            if (activePatientId) {
+                const patient = patients.find(p => p.id === activePatientId);
+                renderVitals(patient);
+                renderFileExplorer();
+                resetEditor();
+                
+                // Clear and prime audit log for this patient
+                auditLogEntries = [];
+                logAudit("Chart Accessed", `Viewed chart for ${patient.name} (ID: ${activePatientId})`);
+                
+                // Enable controls
+                btnNewDoc.disabled = false;
+                btnNewFolder.disabled = false;
+                
+                // Simulate lab notification for Jane Smith
+                notificationDot.classList.toggle('hidden', activePatientId !== 'p2');
+            } else {
+                renderVitals(null);
+                fileExplorer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">Select a patient to view their chart.</p>';
+                fileCount.textContent = '0 items';
+                resetEditor();
+            }
+        }
+
+        /**
+         * Handles clicking on a file or folder in the explorer.
+         */
+        function selectNode(e) {
+            const item = e.target.closest('.file-item');
+            if (!item) return;
+
+            const id = item.dataset.id;
+            const type = item.dataset.type;
+
+            // Remove active class from previous
+            activeNode.element?.classList.remove('file-item-active');
+
+            // Set new active node
+            activeNode = { id, type, element: item };
+            item.classList.add('file-item-active');
+
+            if (type === 'file') {
+                const node = findNodeById(getCurrentPatientFiles(), id);
+                if (node) {
+                    editor.value = node.content;
+                    editorFilename.textContent = node.name;
+                    editor.disabled = false;
+                    btnSave.disabled = false;
+                    
+                    // Apply Role Permissions
+                    applyPermissions();
+                }
+            } else {
+                // Folder selected
+                resetEditor();
+                
+                // Apply Role Permissions (for delete button)
+                applyPermissions();
+            }
+        }
+
+        /**
+         * Resets the editor to its default state.
+         */
+        function resetEditor() {
+            editor.value = '';
+            editorFilename.textContent = 'No file selected.';
+            editor.disabled = true;
+            btnSave.disabled = true;
+            btnDelete.disabled = true;
+            
+            activeNode.element?.classList.remove('file-item-active');
+            activeNode = { id: null, type: null, element: null };
+        }
+
+        /**
+         * Saves the content of the editor to the active file.
+         */
+        function saveFile() {
+            if (activeNode.type !== 'file' || !activeNode.id) return;
+
+            const node = findNodeById(getCurrentPatientFiles(), activeNode.id);
+            if (node) {
+                node.content = editor.value;
+                logAudit("File Updated", `Saved changes to ${node.name}`);
+                // In a real app, you'd show a success message
+            }
+        }
+
+        /**
+         * Initiates the creation of a new node (file or folder).
+         */
+        function createNode(type) {
+            if (!activePatientId) return; // No patient selected
+            
+            // Find parent
+            let parentArray;
+            let parentNode = null;
+            
+            if (activeNode.id) {
+                const selected = findNodeById(getCurrentPatientFiles(), activeNode.id);
+                if (selected.type === 'folder') {
+                    // Create inside selected folder
+                    parentNode = selected;
+                    parentArray = selected.children;
+                } else {
+                    // Create alongside selected file
+                    const parent = findParentNode(getCurrentPatientFiles(), activeNode.id);
+                    if (parent) {
+                        parentNode = parent;
+                        parentArray = parent.children;
+                    } else {
+                        parentArray = getCurrentPatientFiles(); // Root
+                    }
+                }
+            } else {
+                parentArray = getCurrentPatientFiles(); // Root
+            }
+
+            if (type === 'file') {
+                // Open template modal
+                newDocNameInput.value = '';
+                document.querySelector('input[name="doc-template"][value="blank"]').checked = true;
+                openModal(modalNewTemplate);
+            } else {
+                // Simple folder creation
+                const newNode = {
+                    id: generateId(),
+                    type: 'folder',
+                    name: `New Folder`,
+                    children: []
+                };
+                
+                // Check for name conflicts
+                let i = 0;
+                while (parentArray.some(n => n.name === newNode.name)) {
+                    i++;
+                    newNode.name = `New Folder (${i})`;
+                }
+                
+                parentArray.push(newNode);
+                logAudit("Folder Created", `Created folder: ${newNode.name}`);
+                renderFileExplorer();
+            }
+        }
+        
+        /**
+         * Handles the actual creation of a file from the template modal.
+         */
+        function handleCreateFileFromTemplate() {
+            const name = newDocNameInput.value.trim() || 'New Document';
+            const template = document.querySelector('input[name="doc-template"]:checked').value;
+            
+            let parentArray;
+            if (activeNode.id) {
+                const selected = findNodeById(getCurrentPatientFiles(), activeNode.id);
+                if (selected.type === 'folder') {
+                    parentArray = selected.children;
+                } else {
+                    const parent = findParentNode(getCurrentPatientFiles(), activeNode.id);
+                    parentArray = parent ? parent.children : getCurrentPatientFiles();
+                }
+            } else {
+                parentArray = getCurrentPatientFiles();
+            }
+
+            const newNode = {
+                id: generateId(),
+                type: 'file',
+                name: name.endsWith('.txt') ? name : `${name}.txt`,
+                content: DOC_TEMPLATES[template] || ''
+            };
+            
+            let i = 0;
+            let originalName = newNode.name;
+            while (parentArray.some(n => n.name === newNode.name)) {
+                i++;
+                newNode.name = originalName.replace('.txt', ` (${i}).txt`);
+            }
+            
+            parentArray.push(newNode);
+            logAudit("File Created", `Created file: ${newNode.name} (using ${template} template)`);
+            renderFileExplorer();
+            closeModal(modalNewTemplate);
+        }
+
+        /**
+         * Initiates the deletion process by opening the confirm modal.
+         */
+        function confirmDelete() {
+            const node = findNodeById(getCurrentPatientFiles(), activeNode.id);
+            if (!node) return;
+
+            deleteItemName.textContent = node.name;
+            openModal(modalConfirmDelete);
+        }
+
+        /**
+         * Deletes the active node after confirmation.
+         */
+        function deleteNode() {
+            if (!activeNode.id) return;
+
+            const parent = findParentNode(getCurrentPatientFiles(), activeNode.id);
+            let arrayToRemoveFrom;
+
+            if (parent) {
+                arrayToRemoveFrom = parent.children;
+            } else {
+                arrayToRemoveFrom = getCurrentPatientFiles();
+            }
+
+            const index = arrayToRemoveFrom.findIndex(n => n.id === activeNode.id);
+            if (index > -1) {
+                const [deletedNode] = arrayToRemoveFrom.splice(index, 1);
+                logAudit("Item Deleted", `Deleted: ${deletedNode.name} (${deletedNode.type})`);
+            }
+
+            renderFileExplorer();
+            resetEditor();
+            closeModal(modalConfirmDelete);
+        }
+
+        /**
+         * Opens the rename modal.
+         */
+        function openRenameModal() {
+            const node = findNodeById(getCurrentPatientFiles(), contextMenuNode.id);
+            if (!node) return;
+            
+            renameInput.value = node.name;
+            openModal(modalRename);
+        }
+
+        /**
+         * Handles the rename form submission.
+         */
+        function handleRename(e) {
+            e.preventDefault();
+            const node = findNodeById(getCurrentPatientFiles(), contextMenuNode.id);
+            const newName = renameInput.value.trim();
+            if (node && newName) {
+                const oldName = node.name;
+                node.name = newName;
+                logAudit("Item Renamed", `Renamed "${oldName}" to "${newName}"`);
+                renderFileExplorer();
+                
+                // If renamed file is the one in the editor, update filename
+                if (activeNode.id === contextMenuNode.id) {
+                    editorFilename.textContent = newName;
+                }
+            }
+            closeModal(modalRename);
+        }
+
+        /**
+         * Registers a new patient.
+         */
+        function handleRegisterPatient(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('patient-first-name').value;
+            const lastName = document.getElementById('patient-last-name').value;
+            const dob = document.getElementById('patient-dob').value;
+            const contact = document.getElementById('patient-contact').value;
+            
+            const newPatient = {
+                id: `p${patients.length + 1}`,
+                name: `${firstName} ${lastName}`,
+                dob: dob,
+                contact: contact,
+                physician: USER_PROFILES[USER_ROLE].name,
+                vitals: { bp: 'N/A', hr: 'N/A', temp: 'N/A', o2: 'N/A' },
+                avatar: `https://placehold.co/100x100/A0AEC0/FFFFFF?text=${firstName[0]}${lastName[0]}`
+            };
+            
+            patients.push(newPatient);
+            fileSystem[newPatient.id] = [ // Create a basic chart
+                { id: generateId(), type: 'folder', name: 'Visit Notes', children: [] },
+                { id: generateId(), type: 'folder', name: 'Lab Results', children: [] },
+                { id: generateId(), type: 'file', name: 'problem_list.txt', content: '' },
+            ];
+            
+            logAudit("Patient Registered", `Registered new patient: ${newPatient.name} (ID: ${newPatient.id})`);
+            renderPatientList();
+            renderPatientTable();
+            
+            closeModal(modalNewPatient);
+            formNewPatient.reset();
+        }
+
+        /**
+         * Switches the active page view.
+         */
+        function showPage(pageId) {
+            // Hide all pages
+            pageCharts.classList.add('hidden');
+            pageDirectory.classList.add('hidden');
+            pageSchedule.classList.add('hidden');
+            pageSettings.classList.add('hidden');
+            
+            // Deactivate all nav links
+            navLinks.forEach(link => link.classList.remove('sidebar-link-active'));
+            
+            // Show the selected page and activate link
+            switch(pageId) {
+                case 'charts':
+                    pageCharts.classList.remove('hidden');
+                    document.getElementById('nav-charts').classList.add('sidebar-link-active');
+                    break;
+                case 'directory':
+                    pageDirectory.classList.remove('hidden');
+                    document.getElementById('nav-directory').classList.add('sidebar-link-active');
+                    renderPatientTable(); // Refresh table
+                    break;
+                case 'schedule':
+                    pageSchedule.classList.remove('hidden');
+                    document.getElementById('nav-schedule').classList.add('sidebar-link-active');
+                    break;
+                case 'settings':
+                    pageSettings.classList.remove('hidden');
+                    document.getElementById('nav-settings').classList.add('sidebar-link-active');
+                    break;
+            }
+        }
+        
+        /**
+         * Handles sorting the patient directory table.
+         */
+        function handleSort(e) {
+            const column = e.target.dataset.sort;
+            if (!column) return;
+            
+            if (sortState.column === column) {
+                sortState.order = sortState.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = column;
+                sortState.order = 'asc';
+            }
+            renderPatientTable();
+        }
+
+        /**
+         * Toggles dark mode.
+         */
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.setItem('emr-dark-mode', 'true');
+            } else {
+                localStorage.setItem('emr-dark-mode', 'false');
+            }
+        }
+        
+        /**
+         * Applies permissions based on USER_ROLE.
+         */
+        function applyPermissions() {
+            if (USER_ROLE === 'Nurse') {
+                // Nurses cannot delete folders
+                if (activeNode.type === 'folder') {
+                    btnDelete.disabled = true;
+                    btnDelete.title = "You do not have permission to delete folders.";
+                } else {
+                    btnDelete.disabled = activeNode.id ? false : true;
+                    btnDelete.title = "";
+                }
+                
+                // Nurses cannot delete from context menu
+                contextDelete.classList.toggle('opacity-50', contextMenuNode.type === 'folder');
+                contextDelete.classList.toggle('pointer-events-none', contextMenuNode.type === 'folder');
+                
+            } else {
+                // Doctors can do everything
+                btnDelete.disabled = activeNode.id ? false : true;
+                btnDelete.title = "";
+                
+                contextDelete.classList.remove('opacity-50', 'pointer-events-none');
+            }
+        }
+        
+        /**
+         * Shows the "New Appointment" modal.
+         */
+        function openNewAppointmentModal() {
+            // Populate patient list in modal
+            apptPatientSelect.innerHTML = '<option value="" disabled selected>Select a patient...</option>';
+            patients.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.name;
+                if (p.id === activePatientId) {
+                    option.selected = true;
+                }
+                apptPatientSelect.appendChild(option);
+            });
+            
+            formNewAppointment.reset(); // Clear old values
+            // Set selected patient again just in case reset cleared it
+            if(activePatientId) apptPatientSelect.value = activePatientId;
+            
+            openModal(modalNewAppointment);
+        }
+        
+        /**
+         * Handles scheduling a new appointment.
+         */
+        function handleScheduleAppointment(e) {
+            e.preventDefault();
+            const patientId = apptPatientSelect.value;
+            const patientName = patients.find(p => p.id === patientId)?.name || 'Unknown Patient';
+            const date = document.getElementById('appt-date').value;
+            const time = document.getElementById('appt-time').value;
+            const type = document.getElementById('appt-type').value || 'Appointment';
+
+            // In a real app, this would save to a database.
+            // For now, we just log it and close the modal.
+            logAudit("Appointment Scheduled", `Scheduled: ${type} for ${patientName} on ${date} at ${time}`);
+            
+            // We could add the appointment to the grid here, but for a simple
+            // simulator, we'll just close the modal.
+            
+            closeModal(modalNewAppointment);
+        }
+
+        /**
+         * Handles the login form submission.
+         */
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.toLowerCase();
+            const password = document.getElementById('password').value;
+
+            // Mock login logic
+            if (password === '1234') {
+                if (username === 'nurse') {
+                    USER_ROLE = 'Nurse';
+                } else if (username === 'doctor') {
+                    USER_ROLE = 'Doctor';
+                } else {
+                    loginError.classList.remove('hidden');
+                    return;
+                }
+                
+                // Successful login
+                loginPage.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                loginError.classList.add('hidden');
+                
+                // Run the app initialization *after* login
+                initApp(); 
+
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Handles signing out.
+         */
+        function handleSignOut() {
+            // Reset state
+            USER_ROLE = null;
+            activePatientId = null;
+            auditLogEntries = [];
+            
+            // Show login page, hide app
+            mainApp.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+
+            // Clear login form
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            // Reset UI elements that persist
+            resetEditor();
+            fileExplorer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">Select a patient to view their chart.</p>';
+            fileCount.textContent = '0 items';
+            renderVitals(null);
+            patientSelect.innerHTML = '<option value="" disabled selected>Select a patient...</option>';
+            patientSelect.value = "";
+            notificationDot.classList.add('hidden');
+        }
+
+
+        // --- EVENT LISTENERS ---
+
+        // Login / Signout
+        loginForm.addEventListener('submit', handleLogin);
+        btnSignOut.addEventListener('click', handleSignOut);
+
+        // Header
+        patientSelect.addEventListener('change', selectPatient);
+        btnNewDoc.addEventListener('click', () => createNode('file'));
+        btnNewFolder.addEventListener('click', () => createNode('folder'));
+
+        // File Explorer
+        fileExplorer.addEventListener('click', selectNode);
+        
+        // Editor
+        btnSave.addEventListener('click', saveFile);
+        btnDelete.addEventListener('click', confirmDelete);
+
+        // Tabs
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                
+                // Deactivate all
+                tabButtons.forEach(btn => btn.classList.remove('active-tab', 'text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400'));
+                tabContents.forEach(content => content.classList.add('hidden'));
+                
+                // Activate selected
+                button.classList.add('active-tab', 'text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+                document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+            });
+        });
+
+        // Page Navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage(link.id.split('-')[1]);
+            });
+        });
+        
+        // Patient Directory
+        btnRegisterPatient.addEventListener('click', () => openModal(modalNewPatient));
+        patientTableHeaders.forEach(th => th.addEventListener('click', handleSort));
+
+        // Settings
+        darkModeToggle.addEventListener('change', toggleDarkMode);
+
+        // Context Menu
+        fileExplorer.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const item = e.target.closest('.file-item');
+            if (!item) return;
+
+            contextMenuNode = { 
+                id: item.dataset.id, 
+                type: item.dataset.type, 
+                element: item 
+            };
+            
+            // Apply permissions before showing
+            applyPermissions();
+
+            contextMenu.style.top = `${e.clientY}px`;
+            contextMenu.style.left = `${e.clientX}px`;
+            contextMenu.classList.remove('hidden');
+        });
+        
+        // Close context menu
+        document.addEventListener('click', () => {
+            contextMenu.classList.add('hidden');
+        });
+        contextRename.addEventListener('click', (e) => {
+            e.preventDefault();
+            openRenameModal();
+        });
+        contextDelete.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Check permissions before opening delete modal
+            if (USER_ROLE === 'Nurse' && contextMenuNode.type === 'folder') {
+                return; // Do nothing if not allowed
+            }
+            activeNode = contextMenuNode; // Set as active for deletion logic
+            confirmDelete();
+        });
+
+        // Modal: Confirm Delete
+        btnConfirmDelete.addEventListener('click', deleteNode);
+        btnCancelDelete.addEventListener('click', () => closeModal(modalConfirmDelete));
+
+        // Modal: Rename
+        formRename.addEventListener('submit', handleRename);
+        btnCancelRename.addEventListener('click', () => closeModal(modalRename));
+
+        // Modal: New Patient
+        formNewPatient.addEventListener('submit', handleRegisterPatient);
+        btnCancelNewPatient.addEventListener('click', () => closeModal(modalNewPatient));
+
+        // Modal: New Document
+        btnCreateDoc.addEventListener('click', handleCreateFileFromTemplate);
+        btnCancelNewDoc.addEventListener('click', () => closeModal(modalNewTemplate));
+
+        // Modal: New Appointment
+        btnNewAppointment.addEventListener('click', openNewAppointmentModal);
+        btnCancelNewAppointment.addEventListener('click', () => closeModal(modalNewAppointment));
+        formNewAppointment.addEventListener('submit', handleScheduleAppointment);
+
+        // --- INITIALIZATION ---
+        
+        /**
+         * Initializes the main application *after* login.
+         */
+        function initApp() {
+            renderUserProfile(); // Now USER_ROLE is set
+            renderPatientList();
+            renderPatientTable();
+            showPage('charts'); // Start on the main charts page
+
+            // Disable editor/chart buttons initially
+            resetEditor();
+            btnNewDoc.disabled = true;
+            btnNewFolder.disabled = true;
+        }
+        
+        /**
+         * Initializes the login page and dark mode on load.
+         */
+        function initLogin() {
+            // Check for saved dark mode preference
+            if (localStorage.getItem('emr-dark-mode') === 'true') {
+                document.documentElement.classList.add('dark');
+                darkModeToggle.checked = true;
+            }
+        }
+
+        initLogin(); // Run this on load
+    });
+</script>
+
+</body>
+</html>
+
